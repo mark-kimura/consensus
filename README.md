@@ -290,7 +290,7 @@ If a provider fails, the tool continues with available providers and notes the f
 
 ## License
 
-This project is available for educational and research purposes.
+MIT License - This project is free for any use, including commercial use. See LICENSE file for details.
 
 ## Contributing
 
