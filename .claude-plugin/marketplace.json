@@ -1,0 +1,17 @@
+{
+  "name": "consensus-marketplace",
+  "owner": {
+    "name": "Mark Kimura"
+  },
+  "metadata": {
+    "description": "Local marketplace for the Consensus multi-AI plugin"
+  },
+  "plugins": [
+    {
+      "name": "consensus",
+      "source": "./consensus-plugin",
+      "description": "Get unstuck by querying multiple AI providers (GPT-5.2, Gemini, etc.) for diverse perspectives",
+      "version": "1.0.0"
+    }
+  ]
+}
