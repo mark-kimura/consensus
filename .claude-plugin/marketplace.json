@@ -13,8 +13,8 @@
         "source": "github",
         "repo": "mark-kimura/consensus-plugin"
       },
-      "description": "Get unstuck by querying multiple AI providers (GPT-5.5, Gemini, etc.) for diverse perspectives",
-      "version": "1.0.0"
+      "description": "Get unstuck by querying multiple AI providers (GPT-6 Astra, Gemini 4 Argon, DeepSeek V4 Pro) concurrently",
+      "version": "1.7.4"
     }
   ]
 }

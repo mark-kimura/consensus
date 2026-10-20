@@ -15,7 +15,7 @@ argument-hint: "[optional: specific focus area or leave empty for context-based]
 
 # Consensus - Query Multiple AIs
 
-Claude Code will analyze your request and current context to craft a comprehensive prompt, then query multiple AI providers concurrently (GPT-5, Gemini 2.5 Pro, Perplexity via openrouter.ai) and consolidate their responses.
+Claude Code will analyze your request and current context to craft a comprehensive prompt, then query multiple AI providers concurrently (GPT-6 Astra, Gemini 4 Argon, DeepSeek V4 Pro via OpenRouter) and consolidate their responses. It runs the plugin's script in `consensus-plugin/`, not the older top-level `consensus.py`.
 
 Arguments provided: $ARGUMENTS
 
@@ -35,7 +35,7 @@ This command will:
 
 3. **Save prompt to file**: Write the crafted prompt to a markdown file in the `consensus_docs` folder
 
-4. **Execute concurrent queries**: Run the consensus.py script to query multiple providers simultaneously
+4. **Execute concurrent queries**: Run `consensus-plugin/scripts/consensus.py` to query multiple providers simultaneously
 
 5. **Analyze responses and present consensus findings**: All responses will be saved as `consensus_docs/consolidated-{timestamp}.md`, and Claude Code will analyze the results to identify common themes, unique perspectives, and overall consensus
 
@@ -94,17 +94,31 @@ Claude Code will craft a comprehensive prompt with these essential components:
 After crafting the prompt, Claude Code will:
 1. Check if consensus_docs directory exists (create only if needed)
 2. Save the prompt to a file in consensus_docs: `consensus_docs/prompt-{timestamp}.md`
-3. Execute the consensus.py script and wait for completion
+3. Execute `consensus-plugin/scripts/consensus.py` with `uv` and wait for completion
 4. Analyze the consolidated responses and present consensus findings
 
 **Execution Process:**
 ```bash
 # Default: web search mode (uses config default)
-python consensus.py consensus_docs/prompt-{timestamp}.md
+uv run consensus-plugin/scripts/consensus.py consensus_docs/prompt-{timestamp}.md \
+  --config consensus-plugin/consensus_config.json \
+  --plugin-root consensus-plugin \
+  --output-dir consensus_docs
 
 # Explicit no-web mode only when requested
-python consensus.py consensus_docs/prompt-{timestamp}.md --search-mode none
+uv run consensus-plugin/scripts/consensus.py consensus_docs/prompt-{timestamp}.md \
+  --config consensus-plugin/consensus_config.json \
+  --plugin-root consensus-plugin \
+  --output-dir consensus_docs \
+  --search-mode none
 ```
+
+Keep all three options:
+- `--config consensus-plugin/consensus_config.json`: without it, the script reads the top-level `consensus_config.json`, which belongs to the older script and lists GPT-5, Gemini 2.5 Pro and Perplexity.
+- `--plugin-root consensus-plugin`: tells the script where the plugin folder is.
+- `--output-dir consensus_docs`: without it, the script writes the results to a temp directory instead of `consensus_docs`.
+
+The script prints `Output saved to: <path>`. Read the results from that path.
 
 **Simple Waiting Approach:**
 - Claude Code executes the script and waits for it to complete
@@ -119,12 +133,12 @@ The script supports two search modes:
 
 ## AI Providers:
 
-The script queries multiple providers concurrently:
-- **OpenAI GPT-5**: Using the latest Responses API with reasoning capabilities
-- **Google Gemini 2.5 Pro**: With thinking capabilities and large context
-- **Perplexity Sonar**: With built-in web search and research capabilities
+The script queries multiple providers concurrently, all through OpenRouter:
+- **OpenAI GPT-6 Astra**: OpenAI's flagship model, with reasoning capabilities
+- **Google Gemini 4 Argon**: Google's flagship reasoning model, large context
+- **DeepSeek V4 Pro**: GPT-5 class reasoning at a fraction of the cost, strong math and logic
 
-Each provider offers different strengths and perspectives on your question.
+The models are set in `consensus-plugin/consensus_config.json`. Each provider offers different strengths and perspectives on your question.
 
 ## Expected Output:
 - A timestamped markdown file: `consensus_docs/consolidated-YYYYMMDD_HHMMSS.md`
@@ -139,8 +153,8 @@ Each provider offers different strengths and perspectives on your question.
   - **Key takeaways**: Actionable insights synthesized from all responses
 
 ## Requirements:
-- Python dependencies installed (see requirements.txt)
-- Valid API keys configured in `consensus_config.json` or environment variables
+- `uv` installed (it installs the Python dependencies on first run)
+- `OPENROUTER_API_KEY` set as an environment variable (the only key needed for the default setup)
 - The `consensus_docs` folder in the project root (checked automatically)
 
 ## Context Gathering:

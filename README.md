@@ -1,309 +1,185 @@
-# Consensus AI Query Tool
+# Consensus — Multi-AI Provider Plugin for Claude Code
 
-Query multiple AI providers concurrently to get diverse perspectives and expert advice on complex topics. This tool combines responses from GPT-5, Gemini 2.5 Pro, and Perplexity to provide comprehensive analysis and consensus findings.
+Get unstuck by querying multiple AI providers (GPT-6 Astra, Gemini 4 Argon, DeepSeek V4 Pro) for diverse perspectives, right from within Claude Code.
 
-## Features
+The plugin lives in its own repository, [mark-kimura/consensus-plugin](https://github.com/mark-kimura/consensus-plugin), which is included here in the `consensus-plugin/` folder. Current version: 1.7.4.
 
-- **Multi-Provider Querying**: Concurrent queries to OpenAI GPT-5, Google Gemini 2.5 Pro, and Perplexity Sonar
-- **Flexible Configuration**: Support for both direct APIs and OpenRouter proxy
-- **Environment Variable Support**: Secure API key management via environment variables
-- **Search Modes**: Web search integration or fast no-web responses
-- **Consolidated Analysis**: Automatic response consolidation and consensus analysis
-- **Claude Code Integration**: Built-in `/consensus` command for Claude Code users
+## How It Works
 
-## Quick Start
+When you're stuck on a problem, Consensus queries multiple AI providers concurrently — GPT-6 Astra, Gemini 4 Argon, and DeepSeek V4 Pro via OpenRouter by default — then synthesizes their responses to surface common themes, unique insights, and actionable takeaways.
 
-### 1. Installation
+## Installation
+
+### 1. Install `uv` (Python package runner)
 
 ```bash
-pip install -r requirements.txt
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-### 2. API Key Setup
+### 2. Set API Keys
 
-Set your API keys as environment variables (recommended):
+Only one key is needed for the default setup:
 
 ```bash
-export OPENAI_API_KEY="your-openai-key"
-export GEMINI_API_KEY="your-gemini-key"
-export OPENROUTER_API_KEY="your-openrouter-key"
+export OPENROUTER_API_KEY="sk-or-..."   # Routes all three default providers
 ```
 
-Alternatively, configure them in `consensus_config.json` (not recommended for security).
-
-### 3. Basic Usage
+Optional, for direct API access (bypassing OpenRouter):
 
 ```bash
-# Query with web search (default)
-python consensus.py your_prompt.md
-
-# Query without web search for faster responses
-python consensus.py your_prompt.md --search-mode none
-
-# Custom output directory
-python consensus.py your_prompt.md --output-dir custom_results
+export OPENAI_API_KEY="sk-..."          # OpenAI direct API
+export GEMINI_API_KEY="AI..."           # Google Gemini direct API
 ```
 
-### 4. Create a Prompt File
+Add them to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to persist across sessions.
 
-Create a markdown file with your question or topic:
+### 3. Install the Plugin
 
-```markdown
-# Should AI Development Be Regulated?
+**Option A — Third-Party Marketplace**:
 
-Analyze the current state of AI regulation proposals, considering:
-- Technical feasibility of different regulatory approaches
-- Economic impacts on innovation and industry
-- International coordination challenges
-- Timeline considerations for implementation
-
-Please provide specific policy recommendations.
+```
+/plugin marketplace add mark-kimura/kahidreamers-marketplace
+/plugin install consensus@kahidreamers-marketplace
 ```
 
-## Claude Code Integration
+**Option B — Official Plugin Directory** (not yet available — submitted, under review by Anthropic):
 
-If you're using [Claude Code](https://claude.ai/code), this tool includes a built-in `/consensus` command:
-
-### Usage Examples
-
-```bash
-# Let Claude Code analyze context and create the prompt
-/consensus
-
-# Provide specific focus area
-/consensus "help me optimize database query performance"
-
-# Ask about complex technical decisions
-/consensus "should I use microservices or monolith for this project?"
+```
+/plugin install consensus@claude-plugin-directory
 ```
 
-### Workflow
+### 4. Enable Auto-Update (Recommended)
 
-The Claude Code `/consensus` command will:
+For the official directory, auto-update is enabled by default. For third-party marketplaces, enable it manually:
 
-1. **Analyze your request**: Determine focus based on your input or current context
-2. **Craft comprehensive prompt**: Create detailed prompt with:
-   - Problem statement and technical context
-   - Previous attempts and outcomes
-   - Supporting evidence and constraints
-   - Specific questions for AI providers
-3. **Save prompt**: Write to `consensus_docs/prompt-{timestamp}.md`
-4. **Execute queries**: Run concurrent queries to all providers
-5. **Analyze results**: Provide consensus analysis with:
-   - Common themes and agreements
-   - Unique perspectives from each provider
-   - Conflict resolution and synthesis
-   - Actionable recommendations
+1. Run `/plugin` in Claude Code
+2. Go to **Marketplaces**
+3. Select **kahidreamers-marketplace**
+4. Choose **Enable auto-update**
 
-### Expected Output
+Without this, you'll need to run `/plugin update consensus@kahidreamers-marketplace` manually after each release.
 
-- Input prompt: `consensus_docs/prompt-{timestamp}.md`
-- Consolidated responses: `consensus_docs/consolidated-{timestamp}.md`
-- Automatic consensus analysis by Claude Code
+## Usage
+
+### `/consensus:ask`
+
+```
+/consensus:ask help me optimize the SSE connection handling
+```
+
+Or without arguments — Claude infers from conversation context:
+
+```
+/consensus:ask
+```
+
+This also auto-triggers when you say things like:
+- "What do other AIs think about this approach?"
+- "Can I get a consensus on this?"
+- "Cross-check this with other models"
+
+### `/consensus:config`
+
+```
+/consensus:config              # Show current providers (same as check)
+/consensus:config update       # Update all providers to latest models
+/consensus:config add llama 4  # Add a new provider via OpenRouter
+/consensus:config remove deepseek  # Remove a provider
+/consensus:config openai       # Interactively configure OpenAI (model + routing)
+/consensus:config --reset      # Reset all providers to plugin defaults
+```
+
+### What Happens
+
+1. Claude analyzes your request and conversation context
+2. Crafts a comprehensive prompt with technical details
+3. Queries all available providers concurrently
+4. Synthesizes findings: agreements, unique perspectives, and takeaways
+
+All intermediate files go to a temp directory — nothing is written to your project.
 
 ## Configuration
 
-### Environment Variables (Recommended)
+The plugin works out of the box with just `OPENROUTER_API_KEY`. Use `/consensus:config` to manage providers interactively, or customize `consensus_config.json` directly:
 
-```bash
-OPENAI_API_KEY     # OpenAI API key
-GEMINI_API_KEY     # Google Gemini API key  
-OPENROUTER_API_KEY # OpenRouter API key (for Perplexity)
-```
+- **Provider routing**: Route through OpenRouter or call APIs directly (`/consensus:config openai`)
+- **Models**: Add, remove, or update providers (`/consensus:config add llama 4`)
+- **Search modes**: Set default to `"web"` (includes web search) or `"none"` (faster, no web)
+- **Token limits**: Adjust `max_tokens` per provider
 
-### Configuration File
+### Default Providers
 
-The `consensus_config.json` file allows detailed customization:
+| Provider | `none` mode model | `web` mode model |
+|----------|-------------------|------------------|
+| OpenAI | `openai/gpt-6-astra` | `openai/gpt-6-astra:online` |
+| Gemini | `google/gemini-4-argon` | `google/gemini-4-argon:online` |
+| DeepSeek | `deepseek/deepseek-v4-pro-0813` | `deepseek/deepseek-v4-pro-0813:online` |
 
-```json
-{
-  "providers": {
-    "openai": {
-      "enabled": true,
-      "use_openrouter": false,
-      "model": "gpt-5"
-    },
-    "gemini": {
-      "enabled": true,
-      "use_openrouter": true,
-      "openrouter_model": {
-        "none": "google/gemini-2.5-pro",
-        "web": "google/gemini-2.5-pro:online"
-      }
-    },
-    "perplexity": {
-      "enabled": true,
-      "use_openrouter": true,
-      "openrouter_model": {
-        "none": "perplexity/sonar",
-        "web": "perplexity/sonar-reasoning"
-      }
-    }
-  },
-  "settings": {
-    "default_search_mode": "web",
-    "max_tokens": 4000,
-    "temperature": 0.7
-  }
-}
-```
+All three route through OpenRouter by default.
+
+### Config Resolution Order
+
+1. `./consensus_config.json` (project root — for project-specific overrides)
+2. `~/.claude/consensus_config.json` (user config — written by `/consensus:config`, survives plugin updates)
+3. Plugin's built-in `consensus_config.json`
+4. Hardcoded defaults
 
 ## Search Modes
 
-- **`web`**: Include current web information (default)
-  - Best for recent technologies, current events, latest research
-  - Uses models with web search capabilities
-- **`none`**: Fast responses without web search
-  - Best for coding questions, established concepts, faster responses
-  - Uses base models without web integration
+By default, providers include current web information in their responses. If you'd rather get purely model-based perspectives without web search, just say so naturally:
 
-## AI Providers
+- "Get a consensus on this, no web search"
+- "What do other models think — don't use the web"
+- "/consensus:ask without web search, compare approaches to caching"
 
-### OpenAI GPT-5
-- Latest GPT model with Responses API
-- Advanced reasoning capabilities
-- Direct API or OpenRouter support
+Claude will detect your intent and run in the appropriate mode:
 
-### Google Gemini 2.5 Pro
-- Large context window (up to 32K tokens)
-- Thinking capabilities
-- Supports both direct API and OpenRouter
+- **`web`** (default): Providers include current web information. Good for questions about recent technologies or current best practices.
+- **`none`**: Pure model knowledge, no web search. Faster responses. Good for coding questions, architecture decisions, or when you want unbiased model perspectives.
 
-### Perplexity Sonar
-- Built-in web search and research
-- Real-time information access
-- Multiple model variants (sonar, sonar-reasoning, sonar-deep-research)
-
-## Output Format
-
-Results are saved as timestamped markdown files in `consensus_docs/`:
+## Repository Structure
 
 ```
-consensus_docs/
-├── prompt-20250819_105745.md          # Your input prompt
-└── consolidated-20250819_105948.md    # All provider responses
+consensus/
+├── consensus-plugin/              # The plugin (separate repo: mark-kimura/consensus-plugin)
+│   ├── .claude-plugin/
+│   │   └── plugin.json            # Plugin manifest
+│   ├── commands/
+│   │   └── config.md              # /consensus:config command
+│   ├── skills/
+│   │   └── ask/
+│   │       └── SKILL.md           # /consensus:ask skill (also auto-triggers)
+│   ├── hooks/
+│   │   └── hooks.json             # SessionStart: checks API keys + uv
+│   ├── scripts/
+│   │   ├── consensus.py           # Core engine (uv run auto-resolves deps)
+│   │   └── check-setup.sh         # Setup validator
+│   └── consensus_config.json      # Default config template
+├── consensus.py                   # Older standalone script (see below)
+├── consensus_config.json          # Config for the older standalone script
+├── requirements.txt               # Dependencies for the older standalone script
+├── .claude/commands/consensus.md  # /consensus command for this folder (runs the plugin script)
+├── LICENSE
+└── README.md
 ```
 
-### Consolidated Response Structure
+## Older Standalone Script
 
-```markdown
-# Consolidated AI Response - 2025-08-19 10:59:48
-
-**Query:** Your question summary...
-**Providers Used:** OpenAI, Gemini, Perplexity
-
-## OpenAI Response
-[OpenAI's response...]
-
-## Gemini Response  
-[Gemini's response...]
-
-## Perplexity Response
-[Perplexity's response...]
-```
-
-## Advanced Usage
-
-### Custom Configuration
+The `consensus.py` file at the top level of this repository is the version that existed before the plugin. It is not updated with the plugin. It queries GPT-5 (direct OpenAI API), Gemini 2.5 Pro and Perplexity Sonar (through OpenRouter), and saves results to `consensus_docs/`.
 
 ```bash
-python consensus.py prompt.md --config custom_config.json
+pip install -r requirements.txt
+python consensus.py your_prompt.md [--search-mode web|none] [--output-dir DIR] [--config CONFIG]
 ```
 
-### Provider Selection
-
-Enable/disable providers in the config file:
-
-```json
-{
-  "providers": {
-    "openai": {"enabled": true},
-    "gemini": {"enabled": false},
-    "perplexity": {"enabled": true}
-  }
-}
-```
-
-### Model Selection
-
-Configure specific models for different search modes:
-
-```json
-{
-  "providers": {
-    "gemini": {
-      "openrouter_model": {
-        "none": "google/gemini-2.5-pro",
-        "web": "google/gemini-2.5-pro:online"
-      }
-    }
-  }
-}
-```
-
-## Best Practices
-
-### Prompt Writing
-- Be specific about your problem or question
-- Include relevant context and constraints
-- Specify what type of response you need
-- Mention decision criteria and trade-offs
-
-### When to Use Web Mode
-- ✅ Recent technologies, current events, latest research
-- ✅ Industry trends and market analysis
-- ✅ Regulatory and policy questions
-- ❌ Established programming concepts
-- ❌ Mathematical or theoretical questions
-
-### Security
-- Use environment variables for API keys
-- Don't commit API keys to version control
-- Regularly rotate your API keys
-- Review generated prompts before sharing
-
-## Troubleshooting
-
-### No API Keys Found
-```
-Error: No API keys found. Please set environment variables:
-- OPENAI_API_KEY for OpenAI
-- GEMINI_API_KEY for Gemini  
-- OPENROUTER_API_KEY for Perplexity (via OpenRouter)
-```
-
-**Solution**: Set the required environment variables or configure `consensus_config.json`
-
-### Provider Failures
-If a provider fails, the tool continues with available providers and notes the failure in output.
-
-### Rate Limiting
-- OpenAI: Respect tier limits
-- Gemini: Built-in retry logic with exponential backoff
-- OpenRouter: Handles multiple provider rate limits
+For the current models and features, use the plugin.
 
 ## Requirements
 
-- Python 3.7+
-- aiohttp>=3.8.0
-- Valid API keys for desired providers
+- [uv](https://docs.astral.sh/uv/) — auto-installs Python dependencies on first run
+- At least one API key (`OPENROUTER_API_KEY` recommended)
+- Claude Code
 
 ## License
 
-MIT License - This project is free for any use, including commercial use. See LICENSE file for details.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test with multiple providers
-5. Submit a pull request
-
-## Support
-
-For issues and questions:
-1. Check this README for common solutions
-2. Review the configuration file format
-3. Verify API key setup
-4. Test with a simple prompt first
+MIT License — free for any use, including commercial use. See the LICENSE file for details.
