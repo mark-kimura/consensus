@@ -2,7 +2,7 @@
 
 Get unstuck by querying multiple AI providers (GPT-6 Astra, Gemini 4 Argon, DeepSeek V4 Pro) for diverse perspectives, right from within Claude Code.
 
-The plugin lives in its own repository, [mark-kimura/consensus-plugin](https://github.com/mark-kimura/consensus-plugin), which is included here in the `consensus-plugin/` folder. Current version: 1.7.4.
+The plugin lives in its own repository, [mark-kimura/consensus-plugin](https://github.com/mark-kimura/consensus-plugin), which is included here in the `consensus-plugin/` folder. Current version: 1.7.5.
 
 ## How It Works
 
@@ -119,10 +119,12 @@ All three route through OpenRouter by default.
 
 ### Config Resolution Order
 
-1. `./consensus_config.json` (project root — for project-specific overrides)
+1. `./consensus_config.json` (project root — for project-specific overrides; API keys and endpoints in this file are ignored, because the file may come from any repository you open)
 2. `~/.claude/consensus_config.json` (user config — written by `/consensus:config`, survives plugin updates)
 3. Plugin's built-in `consensus_config.json`
 4. Hardcoded defaults
+
+In every config file, endpoints must be `https://` URLs on `api.openai.com`, `generativelanguage.googleapis.com` or `openrouter.ai`. Any other endpoint is replaced by the default, so API keys are only ever sent to those three hosts.
 
 ## Search Modes
 
